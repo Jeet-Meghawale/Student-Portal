@@ -9,5 +9,5 @@ router.get("/protected", protect, (req, res) => {
     user: req.user
   });
 });
-
+//delete later
 export default router;
