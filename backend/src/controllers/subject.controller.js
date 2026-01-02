@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import Subject from "../models/Subject.model.js";
 import User from "../models/User.model.js";
 
@@ -47,3 +48,49 @@ export const createSubject = async (req, res) => {
     });
   }
 };
+
+export const enrollStudent = async (req, res) => {
+  try {
+    const { subjectId, studentId } = req.body;
+
+    // 1. Validate ObjectIds
+    if (
+      !mongoose.Types.ObjectId.isValid(subjectId) ||
+      !mongoose.Types.ObjectId.isValid(studentId)
+    ) {
+      return res.status(400).json({ message: "Invalid ID format" });
+    }
+
+    // 2. Check subject
+    const subject = await Subject.findById(subjectId);
+    if (!subject) {
+      return res.status(404).json({ message: "Subject not found" });
+    }
+
+    // 3. Check student
+    const student = await User.findById(studentId);
+    if (!student || student.role !== "STUDENT") {
+      return res.status(400).json({ message: "Invalid student" });
+    }
+
+    // 4. Prevent duplicate enrollment
+    if (subject.students.includes(studentId)) {
+      return res.status(400).json({
+        message: "Student already enrolled"
+      });
+    }
+
+    // 5. Enroll student
+    subject.students.push(studentId);
+    await subject.save();
+
+    res.status(200).json({
+      message: "Student enrolled successfully"
+    });
+
+  } catch (error) {
+    console.error("Enroll student error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
