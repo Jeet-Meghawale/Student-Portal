@@ -1,0 +1,76 @@
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { login } from "../../services/authServices";
+
+const AdminLogin = () => {
+  const navigate = useNavigate();
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!email || !password) {
+      setError("Email and password are required");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError("");
+
+      const data = await login(email, password);
+
+      // 🔐 STRICT ROLE CHECK
+      if (data.user.role !== "ADMIN") {
+        setError("You are not authorized to access admin panel");
+        return; // ⛔ STOP HERE
+      }
+
+      // ✅ ONLY ADMIN REACHES HERE
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("role", data.user.role);
+
+      navigate("/admin/dashboard");
+    } catch (err) {
+      setError(err.response?.data?.message || "Login failed");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <h2>Admin Login</h2>
+
+      {error && <p>{error}</p>}
+
+      <div>
+        <label>Email</label>
+        <input
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
+      </div>
+
+      <div>
+        <label>Password</label>
+        <input
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+      </div>
+
+      <button type="submit" disabled={loading}>
+        {loading ? "Logging in..." : "Login"}
+      </button>
+    </form>
+  );
+};
+
+export default AdminLogin;
