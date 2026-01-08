@@ -2,37 +2,78 @@ import bcrypt from "bcryptjs";
 import User from "../models/User.model.js";
 import jwt from "jsonwebtoken";
 
+
 export const register = async (req, res) => {
     try {
-        const { name, email, password, role } = req.body;
+        const { users, name, email, password, role } = req.body;
 
-        // 1. Validation
+        /* ================= BULK REGISTER ================= */
+        if (Array.isArray(users)) {
+
+            if (users.length === 0) {
+                return res.status(400).json({ message: "Users array is empty" });
+            }
+
+            // Validate rows
+            for (let i = 0; i < users.length; i++) {
+                const u = users[i];
+                if (!u.name || !u.email || !u.password) {
+                    return res.status(400).json({
+                        message: `Invalid data at row ${i + 1}`
+                    });
+                }
+            }
+
+            // Check duplicate emails in DB
+            const emails = users.map(u => u.email);
+            const existing = await User.find({ email: { $in: emails } });
+
+            if (existing.length > 0) {
+                return res.status(409).json({
+                    message: "Some users already exist",
+                    existingEmails: existing.map(u => u.email)
+                });
+            }
+
+            // Hash passwords SAFELY
+            const hashedUsers = [];
+            for (const u of users) {
+                const hashedPassword = await bcrypt.hash(u.password, 10);
+                hashedUsers.push({
+                    name: u.name,
+                    email: u.email,
+                    password: hashedPassword,
+                    role: u.role || "STUDENT"
+                });
+            }
+
+            await User.insertMany(hashedUsers);
+
+            return res.status(201).json({
+                message: "Students uploaded successfully",
+                count: hashedUsers.length
+            });
+        }
+
+        /* ================= SINGLE REGISTER ================= */
         if (!name || !email || !password) {
-            return res.status(400).json({
-                message: "All fields are required"
-            });
+            return res.status(400).json({ message: "All fields required" });
         }
 
-        // 2. Check if user already exists
-        const existingUser = await User.findOne({ email });
-        if (existingUser) {
-            return res.status(409).json({
-                message: "User already exists"
-            });
+        const exists = await User.findOne({ email });
+        if (exists) {
+            return res.status(409).json({ message: "User already exists" });
         }
 
-        // 3. Hash password
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        // 4. Create user
         const user = await User.create({
             name,
             email,
             password: hashedPassword,
-            role
+            role: role || "STUDENT"
         });
 
-        // 5. Send response
         res.status(201).json({
             message: "User registered successfully",
             user: {
@@ -43,10 +84,11 @@ export const register = async (req, res) => {
             }
         });
 
-    } catch (error) {
-        console.error("Register error:", error);
+    } catch (err) {
+        console.error("REGISTER ERROR:", err);
         res.status(500).json({
-            message: "Server error"
+            message: "Internal server error",
+            
         });
     }
 };
