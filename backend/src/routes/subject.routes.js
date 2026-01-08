@@ -3,7 +3,9 @@ import {
   createSubject,
   enrollStudent,
   enrollStudentsBulk,
-  getAllSubjects
+  getAllSubjects,
+  getMySubjects,
+  getMyTeachingSubjects
 } from "../controllers/subject.controller.js";
 
 import { protect } from "../middlewares/auth.middleware.js";
@@ -44,11 +46,36 @@ router.post(
   enrollStudentsBulk
 );
 
+/* =========================
+    Get all subjects
+   ========================= */
 router.get(
   "/",
   protect,
   authorizeRoles("ADMIN"),
   getAllSubjects
+);
+
+/* =========================
+    Get all subjects of specific student
+    STUDENT ONLY
+   ========================= */
+router.get(
+    "/my",
+    protect,
+    authorizeRoles("STUDENT"),
+    getMySubjects
+);
+
+/* =========================
+    Get all subjects of specific staff
+    STAFF ONLY
+   ========================= */
+router.get(
+    "/teaching",
+    protect,
+    authorizeRoles("STAFF"),
+    getMyTeachingSubjects
 );
 
 

@@ -29,7 +29,7 @@ router.get(
 );
 
 router.get(
-    "/subject/:subjectId",
+    "/subject/:assignmentId",
     protect,
     getAssignmentById
 );

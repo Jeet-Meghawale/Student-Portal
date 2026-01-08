@@ -26,7 +26,7 @@ export const submitAssignment = async (req, res) => {
             });
         }
 
-        // 3. ✅ CHECK STUDENT ENROLLMENT (NEW)
+        // 3.  CHECK STUDENT ENROLLMENT (NEW)
         const isEnrolled = await Enrollment.findOne({
             student: req.user.id,
             subject: assignment.subject

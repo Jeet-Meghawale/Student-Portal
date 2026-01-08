@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import Subject from "../models/Subject.model.js";
 import User from "../models/User.model.js";
+import Enrollment from "../models/Enrollment.model.js";
 
 export const createSubject = async (req, res) => {
   try {
@@ -176,3 +177,35 @@ export const getAllSubjects = async (req, res) => {
   }
 };
 
+export const getMySubjects = async (req, res) => {
+  try {
+    const studentId = req.user.id;
+
+    const enrollments = await Enrollment.find({ student: studentId })
+      .populate("subject");
+
+    const subjects = enrollments.map(e => e.subject);
+
+    res.status(200).json({
+      total: subjects.length,
+      subjects
+    });
+  } catch (error) {
+    console.error("Get my subjects error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+export const getMyTeachingSubjects = async (req, res) => {
+    try {
+        const subjects = await Subject.find({ staff: req.user.id });
+
+        res.status(200).json({
+            total: subjects.length,
+            subjects
+        });
+    } catch (error) {
+        console.error("Get teaching subjects error:", error);
+        res.status(500).json({ message: "Server error" });
+    }
+};

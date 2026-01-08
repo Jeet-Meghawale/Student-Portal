@@ -30,6 +30,8 @@ app.use("/api/submissions", submissionRoutes);
 import adminRoutes from "./routes/admin.routes.js";
 app.use("/api/admin", adminRoutes);
 
+import userRoutes from "./routes/user.routes.js";
+app.use("/api/users", userRoutes);
 
 import testRoutes from "./routes/test.routes.js";
 app.use("/api/test", testRoutes);
