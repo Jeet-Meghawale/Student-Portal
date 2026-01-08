@@ -51,41 +51,43 @@ export const createSubject = async (req, res) => {
 
 export const enrollStudent = async (req, res) => {
   try {
-    const { subjectId, studentId } = req.body;
+    const { subjectId, studentEmail } = req.body;
 
-    // 1. Validate ObjectIds
-    if (
-      !mongoose.Types.ObjectId.isValid(subjectId) ||
-      !mongoose.Types.ObjectId.isValid(studentId)
-    ) {
-      return res.status(400).json({ message: "Invalid ID format" });
+    /* 1. Validation */
+    if (!mongoose.Types.ObjectId.isValid(subjectId) || !studentEmail) {
+      return res.status(400).json({ message: "Invalid subjectId or email" });
     }
 
-    // 2. Check subject
+    /* 2. Check subject */
     const subject = await Subject.findById(subjectId);
     if (!subject) {
       return res.status(404).json({ message: "Subject not found" });
     }
 
-    // 3. Check student
-    const student = await User.findById(studentId);
-    if (!student || student.role !== "STUDENT") {
-      return res.status(400).json({ message: "Invalid student" });
+    /* 3. Find student by email */
+    const student = await User.findOne({
+      email: studentEmail,
+      role: "STUDENT"
+    });
+
+    if (!student) {
+      return res.status(400).json({ message: "Student not found" });
     }
 
-    // 4. Prevent duplicate enrollment
-    if (subject.students.includes(studentId)) {
+    /* 4. Prevent duplicate */
+    if (subject.students.includes(student._id)) {
       return res.status(400).json({
         message: "Student already enrolled"
       });
     }
 
-    // 5. Enroll student
-    subject.students.push(studentId);
+    /* 5. Enroll */
+    subject.students.push(student._id);
     await subject.save();
 
     res.status(200).json({
-      message: "Student enrolled successfully"
+      message: "Student enrolled successfully",
+      studentId: student._id
     });
 
   } catch (error) {
@@ -94,3 +96,66 @@ export const enrollStudent = async (req, res) => {
   }
 };
 
+
+export const enrollStudentsBulk = async (req, res) => {
+  try {
+    const { subjectId, studentEmails } = req.body;
+
+    /* 1. Validation */
+    if (
+      !mongoose.Types.ObjectId.isValid(subjectId) ||
+      !Array.isArray(studentEmails) ||
+      studentEmails.length === 0
+    ) {
+      return res.status(400).json({
+        message: "Valid subjectId and studentEmails array required"
+      });
+    }
+
+    /* 2. Check subject */
+    const subject = await Subject.findById(subjectId);
+    if (!subject) {
+      return res.status(404).json({ message: "Subject not found" });
+    }
+
+    /* 3. Find students by email */
+    const students = await User.find({
+      email: { $in: studentEmails },
+      role: "STUDENT"
+    });
+
+    if (students.length === 0) {
+      return res.status(400).json({
+        message: "No valid students found"
+      });
+    }
+
+    /* 4. Remove duplicates */
+    const existingIds = subject.students.map(id => id.toString());
+
+    const newStudentIds = students
+      .map(s => s._id.toString())
+      .filter(id => !existingIds.includes(id));
+
+    if (newStudentIds.length === 0) {
+      return res.status(400).json({
+        message: "All students are already enrolled"
+      });
+    }
+
+    /* 5. Enroll */
+    subject.students.push(...newStudentIds);
+    await subject.save();
+
+    res.status(200).json({
+      message: "Students enrolled successfully",
+      enrolledCount: newStudentIds.length,
+      skippedCount: studentEmails.length - newStudentIds.length,
+      enrolledStudentIds: newStudentIds
+    });
+
+  } catch (error) {
+    console.error("Bulk enroll error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
