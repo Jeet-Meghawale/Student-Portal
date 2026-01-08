@@ -27,6 +27,9 @@ app.use("/api/assignments", assignmentRoutes);
 import submissionRoutes from "./routes/submission.routes.js";
 app.use("/api/submissions", submissionRoutes);
 
+import adminRoutes from "./routes/admin.routes.js";
+app.use("/api/admin", adminRoutes);
+
 
 import testRoutes from "./routes/test.routes.js";
 app.use("/api/test", testRoutes);
