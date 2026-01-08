@@ -159,3 +159,20 @@ export const enrollStudentsBulk = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
+export const getAllSubjects = async (req, res) => {
+  try {
+    const subjects = await Subject.find()
+      .populate("staff", "name email")
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({
+      total: subjects.length,
+      subjects
+    });
+  } catch (error) {
+    console.error("Get subjects error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+

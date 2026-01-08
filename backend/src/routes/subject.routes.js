@@ -2,7 +2,8 @@ import express from "express";
 import {
   createSubject,
   enrollStudent,
-  enrollStudentsBulk
+  enrollStudentsBulk,
+  getAllSubjects
 } from "../controllers/subject.controller.js";
 
 import { protect } from "../middlewares/auth.middleware.js";
@@ -42,5 +43,13 @@ router.post(
   authorizeRoles("ADMIN"),
   enrollStudentsBulk
 );
+
+router.get(
+  "/",
+  protect,
+  authorizeRoles("ADMIN"),
+  getAllSubjects
+);
+
 
 export default router;

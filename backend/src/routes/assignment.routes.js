@@ -1,5 +1,5 @@
 import express from "express";
-import { createAssignment, getStudentAssignments } from "../controllers/assignment.controller.js";
+import { createAssignment, getAssignmentById, getAssignmentsBySubject, getStudentAssignments } from "../controllers/assignment.controller.js";
 import { protect } from "../middlewares/auth.middleware.js";
 import { authorizeRoles } from "../middlewares/role.middleware.js";
 
@@ -20,5 +20,19 @@ router.get(
   authorizeRoles("STUDENT"),
   getStudentAssignments
 );
+
+// anyone but with subject id
+router.get(
+    "/subject/:subjectId",
+    protect,
+    getAssignmentsBySubject
+);
+
+router.get(
+    "/subject/:subjectId",
+    protect,
+    getAssignmentById
+);
+
 
 export default router;

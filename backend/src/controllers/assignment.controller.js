@@ -79,3 +79,42 @@ export const getStudentAssignments = async (req, res) => {
     });
   }
 };
+
+export const getAssignmentsBySubject = async (req, res) => {
+  try {
+    const { subjectId } = req.params;
+
+    const subject = await Subject.findById(subjectId);
+    if (!subject) {
+      return res.status(404).json({ message: "Subject not found" });
+    }
+
+    const assignments = await Assignment.find({ subject: subjectId })
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({
+      total: assignments.length,
+      assignments
+    });
+  } catch (error) {
+    console.error("Get assignments error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+export const getAssignmentById = async (req, res) => {
+  try {
+    const assignment = await Assignment.findById(req.params.assignmentId)
+      .populate("subject", "name");
+
+    if (!assignment) {
+      return res.status(404).json({ message: "Assignment not found" });
+    }
+
+    res.status(200).json(assignment);
+  } catch (error) {
+    console.error("Get assignment error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
