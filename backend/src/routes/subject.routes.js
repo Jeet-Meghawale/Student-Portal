@@ -15,7 +15,7 @@ const router = express.Router();
    ADMIN ONLY
    ========================= */
 router.post(
-  "/",
+  "/create-subject",
   protect,
   authorizeRoles("ADMIN"),
   createSubject
