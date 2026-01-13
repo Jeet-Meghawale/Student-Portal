@@ -10,7 +10,7 @@ export const getUserIdByEmail = async (req, res) => {
             });
         }
 
-        const user = await User.findOne({ email }).select("_id role");
+        const user = await User.findOne({ email }).select("_id name email");
 
         if (!user) {
             return res.status(404).json({
@@ -20,7 +20,8 @@ export const getUserIdByEmail = async (req, res) => {
 
         return res.status(200).json({
             userId: user._id,
-            role: user.role
+            email: user.email,
+            name :user.name
         });
 
     } catch (error) {

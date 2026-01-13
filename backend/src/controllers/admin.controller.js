@@ -7,7 +7,7 @@ import User from "../models/User.model.js";
  */
 export const getStudents = async (req, res) => {
     try {
-        const students = await User.find({ role: "student" })
+        const students = await User.find({ role: "STUDENT" })
             .select("-password");
 
         res.status(200).json({
@@ -30,7 +30,7 @@ export const getStudents = async (req, res) => {
  */
 export const getStaff = async (req, res) => {
     try {
-        const staff = await User.find({ role: "staff" })
+        const staff = await User.find({ role: "STAFF" })
             .select("-password");
 
         res.status(200).json({
@@ -53,7 +53,7 @@ export const getStaff = async (req, res) => {
  */
 export const getAdmins = async (req, res) => {
     try {
-        const admins = await User.find({ role: "admin" })
+        const admins = await User.find({ role: "ADMIN" })
             .select("-password");
 
         res.status(200).json({
