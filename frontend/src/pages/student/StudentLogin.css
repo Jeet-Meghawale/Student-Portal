@@ -1,0 +1,139 @@
+/* PAGE BACKGROUND */
+.login-page {
+  height: 100vh;
+  background: linear-gradient(135deg, #c7d2fe, #e0f2fe);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* MAIN CARD */
+.login-card {
+  width: 85%;
+  max-width: 1200px;
+  height: 650px;
+  background: #f3f4f6;
+  border-radius: 40px;
+  display: flex;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+  overflow: hidden; /* 🔴 IMPORTANT */
+}
+
+
+/* LEFT LOGIN SECTION */
+.login-left {
+  flex: 1;
+  padding: 60px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.logo {
+  color: #4f46e5;
+  font-size: 26px;
+  font-weight: 600;
+}
+
+.welcome {
+  color: #6b7280;
+  margin-bottom: 30px;
+}
+
+.title {
+  margin-bottom: 20px;
+  font-size: 24px;
+}
+
+.login-left label {
+  margin-top: 15px;
+  font-weight: 500;
+}
+
+.login-left input {
+  width: 100%;
+  padding: 12px 16px;
+  margin-top: 6px;
+  border-radius: 10px;
+  border: none;
+  background: linear-gradient(#e5e7eb, #cbd5e1);
+  outline: none;
+  font-size: 14px;
+}
+
+/* PASSWORD FIELD */
+.password-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.password-wrapper input {
+  padding-right: 12px;
+}
+
+.toggle-password {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  font-size: 18px;
+  user-select: none;
+}
+
+/* LOGIN BUTTON */
+.login-btn {
+  margin-top: 30px;
+  width: 160px;
+  padding: 12px;
+  border-radius: 30px;
+  border: none;
+  background: #a5b4fc;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.3s ease;
+}
+
+.login-btn:hover {
+  background: #818cf8;
+}
+
+/* ERROR MESSAGE */
+.error {
+  color: #dc2626;
+  margin-bottom: 10px;
+  font-size: 14px;
+}
+
+/* RIGHT IMAGE PANEL (IMPORTANT PART) */
+.login-right {
+  width: 38%;
+  background: #8fa1b5;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  /* Match parent rounding */
+  border-top-right-radius: 40px;
+  border-bottom-right-radius: 40px;
+}
+
+.login-right img {
+  width: 75%;
+  height: auto;
+  object-fit: contain;
+}
+
+
+/* RESPONSIVE */
+@media (max-width: 900px) {
+  .login-card {
+    flex-direction: column;
+    height: auto;
+  }
+
+  .login-right {
+    display: none;
+  }
+}

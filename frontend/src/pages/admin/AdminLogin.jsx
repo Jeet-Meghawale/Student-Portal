@@ -1,9 +1,11 @@
-import { useState } from "react";
+import { useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
-import { login } from "../../services/authServices";
+import { login as loginService } from "../../services/authServices";
+import { AuthContext } from "../../context/AuthContext";
 
 const AdminLogin = () => {
   const navigate = useNavigate();
+  const { login } = useContext(AuthContext); // ✅ use context
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -22,17 +24,19 @@ const AdminLogin = () => {
       setLoading(true);
       setError("");
 
-      const data = await login(email, password);
+      const data = await loginService(email, password);
 
       // 🔐 STRICT ROLE CHECK
       if (data.user.role !== "ADMIN") {
         setError("You are not authorized to access admin panel");
-        return; // ⛔ STOP HERE
+        return;
       }
 
-      // ✅ ONLY ADMIN REACHES HERE
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("role", data.user.role);
+      // ✅ SINGLE SOURCE OF TRUTH
+      login({
+        token: data.token,
+        user: data.user,
+      });
 
       navigate("/admin/dashboard");
     } catch (err) {

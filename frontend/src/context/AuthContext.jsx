@@ -6,16 +6,27 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
 
+  // Load auth data from localStorage safely
   useEffect(() => {
     const storedToken = localStorage.getItem("token");
     const storedUser = localStorage.getItem("user");
 
-    if (storedToken && storedUser) {
+    if (storedToken) {
       setToken(storedToken);
-      setUser(JSON.parse(storedUser));
+    }
+
+    if (storedUser) {
+      try {
+        const parsedUser = JSON.parse(storedUser);
+        setUser(parsedUser);
+      } catch (error) {
+        console.error("Invalid user in localStorage, clearing it");
+        localStorage.removeItem("user");
+      }
     }
   }, []);
 
+  // Login
   const login = (data) => {
     setToken(data.token);
     setUser(data.user);
@@ -23,10 +34,12 @@ export const AuthProvider = ({ children }) => {
     localStorage.setItem("user", JSON.stringify(data.user));
   };
 
+  // Logout
   const logout = () => {
     setToken(null);
     setUser(null);
-    localStorage.clear();
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
   };
 
   return (

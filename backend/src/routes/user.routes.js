@@ -8,7 +8,7 @@ const router = express.Router();
 router.post(
     "/get-staff-id-by-email",
     protect,
-    authorizeRoles("STAFF"),
+    authorizeRoles("ADMIN"),
     getUserIdByEmail
 );
 
