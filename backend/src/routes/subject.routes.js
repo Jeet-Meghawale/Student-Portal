@@ -1,6 +1,7 @@
 import express from "express";
 import {
   createSubject,
+  deleteSubject,
   enrollStudent,
   enrollStudentsBulk,
   getAllSubjects,
@@ -78,5 +79,15 @@ router.get(
     getMyTeachingSubjects
 );
 
+/* =============================
+  Delete Subject
+  ADMIN only
+  ==========================*/
+router.delete(
+  "/:id",
+  protect,
+  authorizeRoles("ADMIN"),
+  deleteSubject
+);
 
 export default router;

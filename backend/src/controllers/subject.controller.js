@@ -86,6 +86,12 @@ export const enrollStudent = async (req, res) => {
     subject.students.push(student._id);
     await subject.save();
 
+    await Enrollment.create({
+      student: student._id,
+      subject: subjectId
+    });
+
+
     res.status(200).json({
       message: "Student enrolled successfully",
       studentId: student._id
@@ -96,7 +102,6 @@ export const enrollStudent = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
-
 
 export const enrollStudentsBulk = async (req, res) => {
   try {
@@ -119,7 +124,7 @@ export const enrollStudentsBulk = async (req, res) => {
       return res.status(404).json({ message: "Subject not found" });
     }
 
-    /* 3. Find students by email */
+    /* 3. Find students */
     const students = await User.find({
       email: { $in: studentEmails },
       role: "STUDENT"
@@ -131,28 +136,48 @@ export const enrollStudentsBulk = async (req, res) => {
       });
     }
 
-    /* 4. Remove duplicates */
+    /* 4. Remove already enrolled students (Subject level) */
     const existingIds = subject.students.map(id => id.toString());
 
-    const newStudentIds = students
-      .map(s => s._id.toString())
-      .filter(id => !existingIds.includes(id));
+    const newStudents = students.filter(
+      s => !existingIds.includes(s._id.toString())
+    );
 
-    if (newStudentIds.length === 0) {
+    if (newStudents.length === 0) {
       return res.status(400).json({
         message: "All students are already enrolled"
       });
     }
 
-    /* 5. Enroll */
+    /* 5. Update Subject */
+    const newStudentIds = newStudents.map(s => s._id);
     subject.students.push(...newStudentIds);
     await subject.save();
 
+    /* 6. Create Enrollment records */
+    const enrollmentDocs = newStudents.map(student => ({
+      student: student._id,
+      subject: subjectId
+    }));
+
+    let enrollmentResult;
+    try {
+      enrollmentResult = await Enrollment.insertMany(enrollmentDocs, {
+        ordered: false // continue even if duplicates exist
+      });
+    } catch (err) {
+      // Duplicate key errors are expected due to unique index
+      if (err.code !== 11000) {
+        throw err;
+      }
+      enrollmentResult = err.insertedDocs || [];
+    }
+
     res.status(200).json({
       message: "Students enrolled successfully",
-      enrolledCount: newStudentIds.length,
-      skippedCount: studentEmails.length - newStudentIds.length,
-      enrolledStudentIds: newStudentIds
+      enrolledCount: enrollmentResult.length,
+      skippedCount: students.length - enrollmentResult.length,
+      enrolledStudentIds: enrollmentResult.map(e => e.student)
     });
 
   } catch (error) {
@@ -160,6 +185,7 @@ export const enrollStudentsBulk = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
 
 export const getAllSubjects = async (req, res) => {
   try {
@@ -197,15 +223,69 @@ export const getMySubjects = async (req, res) => {
 };
 
 export const getMyTeachingSubjects = async (req, res) => {
-    try {
-        const subjects = await Subject.find({ staff: req.user.id });
+  try {
+    const subjects = await Subject.find({ staff: req.user.id });
 
-        res.status(200).json({
-            total: subjects.length,
-            subjects
-        });
-    } catch (error) {
-        console.error("Get teaching subjects error:", error);
-        res.status(500).json({ message: "Server error" });
-    }
+    res.status(200).json({
+      total: subjects.length,
+      subjects
+    });
+  } catch (error) {
+    console.error("Get teaching subjects error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
 };
+
+export const unenrollStudent = async (req, res) => {
+  try {
+    const { subjectId, studentId } = req.body;
+
+    const subject = await Subject.findById(subjectId);
+    if (!subject) {
+      return res.status(404).json({ message: "Subject not found" });
+    }
+
+    subject.students = subject.students.filter(
+      id => id.toString() !== studentId
+    );
+    await subject.save();
+
+    await Enrollment.deleteOne({
+      student: studentId,
+      subject: subjectId
+    });
+
+    res.status(200).json({
+      message: "Student unenrolled successfully"
+    });
+
+  } catch (error) {
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+export const deleteSubject = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const subject = await Subject.findById(id);
+    if (!subject) {
+      return res.status(404).json({ message: "Subject not found" });
+    }
+
+    // STEP 1: Delete all enrollments related to this subject
+    await Enrollment.deleteMany({ subject: id });
+
+    // STEP 2: Delete the subject itself
+    await Subject.findByIdAndDelete(id);
+
+    res.status(200).json({
+      message: "Subject and related enrollments deleted successfully"
+    });
+
+  } catch (error) {
+    console.error("Delete subject error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
