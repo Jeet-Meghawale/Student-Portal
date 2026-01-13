@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import Subject from "../models/Subject.model.js";
 import User from "../models/User.model.js";
 import Enrollment from "../models/Enrollment.model.js";
+import { createNotification } from "../utils/notification.helper.js";
 
 export const createSubject = async (req, res) => {
   try {
@@ -91,6 +92,15 @@ export const enrollStudent = async (req, res) => {
       subject: subjectId
     });
 
+    /*6. Notification */
+    await createNotification({
+      user: student._id,
+      title: "Enrolled in Subject",
+      message: `You have been enrolled in ${subject.name}`,
+      type: "ENROLLMENT"
+    });
+
+
 
     res.status(200).json({
       message: "Student enrolled successfully",
@@ -172,6 +182,18 @@ export const enrollStudentsBulk = async (req, res) => {
       }
       enrollmentResult = err.insertedDocs || [];
     }
+
+    /*7. Notification */
+    await Promise.all(
+      enrollmentResult.map(e =>
+        createNotification({
+          user: e.student,
+          title: "Enrolled in Subject",
+          message: `You have been enrolled in ${subject.name}`,
+          type: "ENROLLMENT"
+        })
+      )
+    );
 
     res.status(200).json({
       message: "Students enrolled successfully",

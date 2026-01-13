@@ -1,5 +1,7 @@
 import Assignment from "../models/Assignment.model.js";
 import Subject from "../models/Subject.model.js";
+import Enrollment from "../models/Enrollment.model.js";
+import { createNotification } from "../utils/notification.helper.js";
 
 export const createAssignment = async (req, res) => {
   try {
@@ -36,6 +38,22 @@ export const createAssignment = async (req, res) => {
       allowGroup,
       createdBy: req.user.id
     });
+
+    const enrollments = await Enrollment.find({
+      subject: assignment.subject
+    });
+
+    await Promise.all(
+      enrollments.map(e =>
+        createNotification({
+          user: e.student,
+          title: "New Assignment Posted",
+          message: `New assignment "${assignment.title}" has been posted`,
+          type: "ASSIGNMENT"
+        })
+      )
+    );
+
 
     res.status(201).json({
       message: "Assignment created successfully",

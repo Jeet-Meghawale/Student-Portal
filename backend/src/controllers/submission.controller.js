@@ -57,6 +57,15 @@ export const submitAssignment = async (req, res) => {
             fileUrl: req.file.path,
             status: "submitted"
         });
+        
+        // 6. Notifications
+        await createNotification({
+            user: assignment.createdBy, // staff
+            title: "Assignment Submitted",
+            message: `A student submitted "${assignment.title}"`,
+            type: "SUBMISSION"
+        });
+
 
         res.status(201).json({
             message: "Assignment submitted successfully",

@@ -8,9 +8,9 @@ import {
   getMySubjects,
   getMyTeachingSubjects
 } from "../controllers/subject.controller.js";
-
 import { protect } from "../middlewares/auth.middleware.js";
 import { authorizeRoles } from "../middlewares/role.middleware.js";
+import { createNotification } from "../utils/notification.helper.js";
 
 const router = express.Router();
 
