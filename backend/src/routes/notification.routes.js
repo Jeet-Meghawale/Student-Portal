@@ -18,3 +18,5 @@ router.patch(
     "/:id/read",
     markAsRead
 );
+
+export default router;

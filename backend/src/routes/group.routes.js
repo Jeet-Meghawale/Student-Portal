@@ -33,3 +33,4 @@ router.delete(
     authorizeRoles("STAFF"),
     deleteGroup
 );
+export default router;
