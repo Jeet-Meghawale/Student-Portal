@@ -67,42 +67,48 @@ const EnrollStudents = () => {
   // -----------------------------
   // Submit Enrollment
   // -----------------------------
-const handleEnroll = async () => {
-  if (!emails.length) {
-    setError("No students to enroll");
-    return;
-  }
+  const handleEnroll = async () => {
+    if (!emails.length) {
+      setError("No students to enroll");
+      return;
+    }
 
-  try {
-    setLoading(true);
-    setError("");
-    setSuccess("");
+    try {
+      setLoading(true);
+      setError("");
+      setSuccess("");
 
-    /*
-      ✅ BACKEND EXPECTATION
-      POST /api/subjects/enroll-bulk
-      Payload: { subjectId, studentEmails }
-    */
-    const res = await api.post("/api/subjects/enroll-bulk", {
-      subjectId,
-      studentEmails: emails
-    });
+      /*
+        ✅ BACKEND EXPECTATION
+        POST /api/subjects/enroll-bulk
+        Payload: { subjectId, studentEmails }
+      */
+      const res = await api.post("/api/subjects/enroll-bulk", {
+        subjectId,
+        studentEmails: emails
+      });
 
-    console.log(res.data);    
-    setSuccess(
-      `Enrollment completed. Enrolled: ${res.data.enrolledCount}, Skipped: ${res.data.skippedCount}`
-    );
+      console.log(res.data);
+      setSuccess(
+        `Enrollment completed. Enrolled: ${res.data.enrolledCount}, Skipped: ${res.data.skippedCount}`
+      );
 
-    setEmails([]);
-  } catch (err) {
-    setError(
-      err.response?.data?.message ||
-      "Failed to enroll students"
-    );
-  } finally {
-    setLoading(false);
-  }
-};
+      if (res.data.invalidEmails?.length) {
+        setError(
+          `These emails are not registered students:\n${res.data.invalidEmails.join(", ")}`
+        );
+      }
+
+      setEmails([]);
+    } catch (err) {
+      setError(
+        err.response?.data?.message ||
+        "Failed to enroll students"
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
 
   return (

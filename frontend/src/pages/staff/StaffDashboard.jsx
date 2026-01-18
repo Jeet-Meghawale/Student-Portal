@@ -20,8 +20,14 @@ const StaffDashboard = () => {
             </Link>
           </li>
 
+          <li>
+            <Link to="/staff/assignments/create">
+              Create Assignment
+            </Link>
+          </li>
+
+
           {/* Future */}
-          <li>Create Assignments (coming soon)</li>
           <li>View Submissions (coming soon)</li>
         </ul>
       </div>

@@ -34,7 +34,10 @@ const StudentLogin = () => {
         return;
       }
 
-      login(token, user);
+      login({
+        token,
+        user
+      });
       navigate("/student/dashboard");
     } catch (err) {
       setError(err.response?.data?.message || "Login failed");

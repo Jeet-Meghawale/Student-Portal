@@ -8,8 +8,12 @@ import SubjectList from "../pages/admin/subjects/SubjectList";
 import StudentLogin from "../pages/student/StudentLogin";
 import StudentDashboard from "../pages/student/StudentDashboard";
 import StudentSubjects from "../pages/student/StudentSubject.jsx";
-
+import StudentSubjectForAssignment from "../pages/student/assignments/StudentSubjects.jsx"
+import SubmitAssignment from "../pages/student/assignments/SubmitAssignment.jsx";
+import SubjectAssignmentsForStudent from "../pages/student/assignments/SubjectAssignments.jsx";
 import StaffDashboard from "../pages/staff/StaffDashboard.jsx"
+import SelectSubjectForAssignment from "../pages/staff/assignments/SelectSubjectForAssignment.jsx";
+import SubjectAssignments from "../pages/staff/assignments/SubjectAssignments.jsx";
 
 // ---------------- USER MANAGEMENT ----------------
 import UserManagementHome from "../pages/admin/users/UserManagementHome";
@@ -23,6 +27,8 @@ import EnrollStudents from "../pages/admin/subjects/EnrollStudents";
 import SubjectManagementHome from "../pages/admin/subjects/SubjectManagementHome";
 import CreateSubject from "../pages/admin/subjects/CreateSubject";
 import StaffLogin from "../pages/staff/StaffLogin.jsx";
+import StaffSubjects from "../pages/staff/StaffSubjects.jsx";
+import CreateAssignment from "../pages/staff/assignments/CreateAssignments.jsx";
 
 // ---------------- ADMIN DASHBOARD HOME ----------------
 const AdminHome = () => {
@@ -53,17 +59,66 @@ const AppRoutes = () => {
       <Route path="/" element={<Navigate to="/login" />} />
       <Route path="/login" element={<StudentLogin />} />
       <Route path="/student/dashboard" element={<StudentDashboard />} />
+      <Route path="/student/my-subjects" element={<StudentSubjects />} />
       <Route
-        path="/student/subjects"
+        path="/student/my-subjects"
         element={
           <ProtectedRoute role="STUDENT">
-            <StudentSubjects />
+            <StudentSubjectForAssignment />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/student/assignments"
+        element={
+          <ProtectedRoute role="STUDENT">
+            <StudentSubjectForAssignment />
           </ProtectedRoute>
         }
       />
 
+      <Route
+        path="/student/assignments/subject/:subjectId"
+        element={
+          <ProtectedRoute role="STUDENT">
+            <SubjectAssignmentsForStudent />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/student/assignments/:assignmentId/submit"
+        element={
+          <ProtectedRoute role="STUDENT">
+            <SubmitAssignment />
+          </ProtectedRoute>
+        }
+      />
+
+
       <Route path="/staff/login" element={<StaffLogin />} />
       <Route path="/staff/dashboard" element={<StaffDashboard />} />
+      <Route path="/staff/subjects" element={<StaffSubjects />} />
+      <Route
+        path="/staff/assignments/create"
+        element={
+          <ProtectedRoute role="STAFF">
+            <SelectSubjectForAssignment />
+          </ProtectedRoute>
+        }
+      />
+      <Route path="/staff/subjects/:subjectId/assignments/create" element={<CreateAssignment />} />
+      <Route
+        path="/staff/subjects/:subjectId/assignments"
+        element={
+          <ProtectedRoute role="STAFF">
+            <SubjectAssignments />
+          </ProtectedRoute>
+        }
+      />
+
+
+
 
       <Route path="/admin/login" element={<AdminLogin />} />
 

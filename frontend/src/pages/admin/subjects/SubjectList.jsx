@@ -11,29 +11,28 @@ const SubjectList = () => {
   // Fetch all subjects (Admin)
   // -----------------------------
   useEffect(() => {
-  const fetchSubjects = async () => {
-    try {
-      const res = await api.get("/api/subjects/");
-      console.log(res.data.subjects);
-      // ✅ ALWAYS ensure array
-      const subjectData = Array.isArray(res.data.subjects)
-        ? res.data.subjects
-        : [];
+    const fetchSubjects = async () => {
+      try {
+        const res = await api.get("/api/subjects");
 
-      setSubjects(subjectData);
-    } catch (err) {
-      setError(
-        err.response?.data?.message || "Failed to fetch subjects"
-      );
-      setSubjects([]); // ✅ fallback
-    } finally {
-      setLoading(false);
-    }
-  };
+        // ✅ Backend returns { total, subjects }
+        const subjectData = Array.isArray(res.data.subjects)
+          ? res.data.subjects
+          : [];
 
-  fetchSubjects();
-}, []);
+        setSubjects(subjectData);
+      } catch (err) {
+        setError(
+          err.response?.data?.message || "Failed to fetch subjects"
+        );
+        setSubjects([]);
+      } finally {
+        setLoading(false);
+      }
+    };
 
+    fetchSubjects();
+  }, []);
 
   if (loading) return <p>Loading subjects...</p>;
   if (error) return <p>{error}</p>;

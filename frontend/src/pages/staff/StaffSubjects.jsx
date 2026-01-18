@@ -2,18 +2,18 @@ import { useEffect, useState } from "react";
 import api from "../../services/api";
 import UserHeader from "../../components/common/UserHeader";
 
-const StudentSubjects = () => {
+const StaffSubjects = () => {
   const [subjects, setSubjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   // -----------------------------
-  // Fetch enrolled subjects
+  // Fetch subjects assigned to staff
   // -----------------------------
   useEffect(() => {
     const fetchMySubjects = async () => {
       try {
-        const res = await api.get("/api/subjects/my");
+        const res = await api.get("/api/subjects/teaching");
 
         const subjectData = Array.isArray(res.data.subjects)
           ? res.data.subjects
@@ -23,7 +23,7 @@ const StudentSubjects = () => {
       } catch (err) {
         setError(
           err.response?.data?.message ||
-          "Failed to fetch subjects"
+          "Failed to fetch assigned subjects"
         );
         setSubjects([]);
       } finally {
@@ -40,18 +40,19 @@ const StudentSubjects = () => {
   return (
     <div>
       {/* Username + Logout */}
-      <UserHeader redirectTo="/login" />
+      {/* <UserHeader redirectTo="/staff/login" /> */}
 
-      <h2>My Subjects</h2>
+      <h2>My Assigned Subjects</h2>
 
       {subjects.length === 0 ? (
-        <p>You are not enrolled in any subjects</p>
+        <p>No subjects assigned yet</p>
       ) : (
         <table>
           <thead>
             <tr>
               <th>Subject Name</th>
               <th>Subject Code</th>
+              <th>Create Assignment</th>
             </tr>
           </thead>
           <tbody>
@@ -68,4 +69,4 @@ const StudentSubjects = () => {
   );
 };
 
-export default StudentSubjects;
+export default StaffSubjects;

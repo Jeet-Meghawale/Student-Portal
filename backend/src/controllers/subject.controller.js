@@ -128,66 +128,71 @@ export const enrollStudentsBulk = async (req, res) => {
       });
     }
 
-    /* 2. Check subject */
+    /* 2. Subject check */
     const subject = await Subject.findById(subjectId);
     if (!subject) {
       return res.status(404).json({ message: "Subject not found" });
     }
 
-    /* 3. Find students */
+    /* 3. Fetch valid STUDENT users */
     const students = await User.find({
       email: { $in: studentEmails },
       role: "STUDENT"
     });
 
-    if (students.length === 0) {
-      return res.status(400).json({
-        message: "No valid students found"
-      });
-    }
+    const validEmails = students.map(s => s.email);
 
-    /* 4. Remove already enrolled students (Subject level) */
+    /* 4. INVALID EMAILS (not in DB or not STUDENT) */
+    const invalidEmails = studentEmails.filter(
+      email => !validEmails.includes(email)
+    );
+
+    /* 5. Remove already-enrolled students */
     const existingIds = subject.students.map(id => id.toString());
 
     const newStudents = students.filter(
       s => !existingIds.includes(s._id.toString())
     );
 
+    const alreadyEnrolledEmails = students
+      .filter(s => existingIds.includes(s._id.toString()))
+      .map(s => s.email);
+
     if (newStudents.length === 0) {
       return res.status(400).json({
-        message: "All students are already enrolled"
+        message: "No new students to enroll",
+        invalidEmails,
+        alreadyEnrolledEmails
       });
     }
 
-    /* 5. Update Subject */
+    /* 6. Update Subject */
     const newStudentIds = newStudents.map(s => s._id);
     subject.students.push(...newStudentIds);
     await subject.save();
 
-    /* 6. Create Enrollment records */
-    const enrollmentDocs = newStudents.map(student => ({
-      student: student._id,
-      subject: subjectId
-    }));
+    /* 7. Create Enrollment records SAFELY */
+    let enrolledCount = 0;
+    const enrolledStudentIds = [];
 
-    let enrollmentResult;
-    try {
-      enrollmentResult = await Enrollment.insertMany(enrollmentDocs, {
-        ordered: false // continue even if duplicates exist
-      });
-    } catch (err) {
-      // Duplicate key errors are expected due to unique index
-      if (err.code !== 11000) {
-        throw err;
+    for (const student of newStudents) {
+      try {
+        await Enrollment.create({
+          student: student._id,
+          subject: subjectId
+        });
+        enrolledCount++;
+        enrolledStudentIds.push(student._id);
+      } catch (err) {
+        if (err.code !== 11000) throw err;
       }
-      enrollmentResult = err.insertedDocs || [];
     }
 
-    /*7. Notification */
+    /* 8. Notifications */
     await Promise.all(
-      enrollmentResult.map(e =>
+      enrolledStudentIds.map(studentId =>
         createNotification({
-          user: e.student,
+          user: studentId,
           title: "Enrolled in Subject",
           message: `You have been enrolled in ${subject.name}`,
           type: "ENROLLMENT"
@@ -195,11 +200,14 @@ export const enrollStudentsBulk = async (req, res) => {
       )
     );
 
+    /* 9. FINAL RESPONSE */
     res.status(200).json({
-      message: "Students enrolled successfully",
-      enrolledCount: enrollmentResult.length,
-      skippedCount: students.length - enrollmentResult.length,
-      enrolledStudentIds: enrollmentResult.map(e => e.student)
+      message: "Bulk enrollment completed",
+      enrolledCount,
+      skippedAlreadyEnrolled: alreadyEnrolledEmails.length,
+      invalidEmails,
+      alreadyEnrolledEmails,
+      enrolledStudentIds
     });
 
   } catch (error) {
