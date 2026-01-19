@@ -25,11 +25,9 @@ const AddStudents = () => {
         const data = new Uint8Array(event.target.result);
         const workbook = XLSX.read(data, { type: "array" });
 
-        // Take only the first sheet
         const sheetName = workbook.SheetNames[0];
         const worksheet = workbook.Sheets[sheetName];
 
-        // Convert sheet to JSON
         const jsonData = XLSX.utils.sheet_to_json(worksheet);
 
         if (!jsonData.length) {
@@ -37,23 +35,19 @@ const AddStudents = () => {
           return;
         }
 
-        // Map & validate rows
         const formattedStudents = jsonData.map((row, index) => {
           if (!row.name || !row.email) {
-            throw new Error(
-              `Missing name or email in row ${index + 2}`
-            );
+            throw new Error(`Missing name or email in row ${index + 2}`);
           }
 
           return {
             name: row.name,
             email: row.email,
-            password: row.email, // ✅ default password = email
-            role: "STUDENT",     // ✅ force role
+            password: row.email,
+            role: "STUDENT",
           };
         });
 
-        // Optional safety limit (recommended)
         if (formattedStudents.length > 500) {
           throw new Error("Maximum 500 students allowed per upload");
         }
@@ -69,7 +63,7 @@ const AddStudents = () => {
   };
 
   // -----------------------------
-  // Submit Students to Backend
+  // Submit Students
   // -----------------------------
   const handleSubmit = async () => {
     if (!students.length) {
@@ -82,10 +76,6 @@ const AddStudents = () => {
       setError("");
       setSuccess("");
 
-      /*
-        ✅ SINGLE BACKEND ROUTE
-        POST /api/auth/register
-      */
       await api.post("/api/auth/register", {
         users: students,
       });
@@ -93,52 +83,138 @@ const AddStudents = () => {
       setSuccess(`${students.length} students added successfully`);
       setStudents([]);
     } catch (err) {
-      setError(
-        err.response?.data?.message || "Failed to upload students"
-      );
+      setError(err.response?.data?.message || "Failed to upload students");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div>
-      <h3>Add Students (Bulk Upload)</h3>
+    <div
+      style={{
+        minHeight: "80vh",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "flex-start",
+        paddingTop: "60px",
+      }}
+    >
+      <div style={{ width: "100%", maxWidth: "640px" }}>
+        {/* Title */}
+        <h2 style={{ fontSize: "28px", fontWeight: "700" }}>
+          Add Students
+        </h2>
+        <p style={{ color: "#6b7280", marginBottom: "28px" }}>
+          Upload an Excel or CSV file to add students in bulk
+        </p>
 
-      {error && <p>{error}</p>}
-      {success && <p>{success}</p>}
+        {/* Messages */}
+        {error && <div style={errorStyle}>{error}</div>}
+        {success && <div style={successStyle}>{success}</div>}
 
-      {/* Excel Upload */}
-      <input
-        type="file"
-        accept=".xlsx,.xls,.csv"
-        onChange={handleFileUpload}
-      />
+        {/* Upload Card */}
+        <div style={cardStyle}>
+          <label style={uploadLabel}>
+            Upload Excel / CSV File
+            <input
+              type="file"
+              accept=".xlsx,.xls,.csv"
+              onChange={handleFileUpload}
+              style={{ display: "none" }}
+            />
+          </label>
 
-      {/* Preview */}
-      {students.length > 0 && (
-        <div>
-          <p>Total Students: {students.length}</p>
+          {students.length > 0 && (
+            <div style={{ marginTop: "20px" }}>
+              <p style={{ fontWeight: "600" }}>
+                Total Students: {students.length}
+              </p>
 
-          <ul>
-            {students.slice(0, 5).map((student, index) => (
-              <li key={index}>
-                {student.name} — {student.email}
-              </li>
-            ))}
-          </ul>
+              <ul style={previewList}>
+                {students.slice(0, 5).map((student, index) => (
+                  <li key={index}>
+                    {student.name} — {student.email}
+                  </li>
+                ))}
+              </ul>
 
-          {students.length > 5 && (
-            <p>Showing first 5 students</p>
+              {students.length > 5 && (
+                <p style={{ fontSize: "14px", color: "#6b7280" }}>
+                  Showing first 5 students
+                </p>
+              )}
+
+              <button
+                onClick={handleSubmit}
+                disabled={loading}
+                style={{
+                  ...buttonStyle,
+                  opacity: loading ? 0.7 : 1,
+                }}
+              >
+                {loading ? "Uploading..." : "Upload Students"}
+              </button>
+            </div>
           )}
-
-          <button onClick={handleSubmit} disabled={loading}>
-            {loading ? "Uploading..." : "Upload Students"}
-          </button>
         </div>
-      )}
+      </div>
     </div>
   );
+};
+
+/* ---------------- STYLES ---------------- */
+
+const cardStyle = {
+  background: "#ffffff",
+  padding: "32px",
+  borderRadius: "14px",
+  boxShadow: "0 20px 40px rgba(0,0,0,0.08)",
+  borderLeft: "6px solid #16a34a", // 🟢 Student theme
+};
+
+const uploadLabel = {
+  display: "block",
+  padding: "18px",
+  border: "2px dashed #16a34a",
+  borderRadius: "10px",
+  textAlign: "center",
+  cursor: "pointer",
+  fontWeight: "600",
+  color: "#166534",
+};
+
+const previewList = {
+  marginTop: "12px",
+  paddingLeft: "18px",
+};
+
+const buttonStyle = {
+  width: "100%",
+  padding: "14px",
+  marginTop: "18px",
+  borderRadius: "10px",
+  border: "none",
+  background: "#16a34a",
+  color: "#ffffff",
+  fontSize: "16px",
+  fontWeight: "600",
+  cursor: "pointer",
+};
+
+const errorStyle = {
+  background: "#fee2e2",
+  color: "#991b1b",
+  padding: "12px",
+  borderRadius: "8px",
+  marginBottom: "16px",
+};
+
+const successStyle = {
+  background: "#dcfce7",
+  color: "#166534",
+  padding: "12px",
+  borderRadius: "8px",
+  marginBottom: "16px",
 };
 
 export default AddStudents;

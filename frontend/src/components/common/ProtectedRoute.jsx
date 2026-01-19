@@ -3,7 +3,11 @@ import { useContext } from "react";
 import { AuthContext } from "../../context/AuthContext";
 
 const ProtectedRoute = ({ children, role }) => {
-  const { user } = useContext(AuthContext);
+  const { user, authLoading } = useContext(AuthContext);
+
+  if (authLoading) {
+    return <p>Loading...</p>; // or spinner
+  }
 
   // 🔄 Wait until auth is loaded
   if (!user) {
@@ -12,7 +16,7 @@ const ProtectedRoute = ({ children, role }) => {
     } else if (role === "STAFF") {
       return <Navigate to="/staff/login" replace />;
     }else {
-      return <Navigate to="/login" replace />;
+      return <Navigate to="/" replace />;
     }
   }
 

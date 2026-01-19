@@ -20,7 +20,7 @@ const SubjectAssignments = () => {
         );
 
         setAssignments(filteredAssignments);
-      } catch (err) {
+      } catch {
         setError("Failed to load assignments");
       } finally {
         setLoading(false);
@@ -34,40 +34,62 @@ const SubjectAssignments = () => {
   if (error) return <p>{error}</p>;
 
   return (
-    <div>
-      <h2>Assignments</h2>
+    <div style={styles.page}>
+      <h2 style={styles.title}>Assignments</h2>
 
       {assignments.length === 0 ? (
         <p>No assignments for this subject</p>
       ) : (
-        <div style={{ display: "grid", gap: "16px" }}>
-          {assignments.map((assignment) => (
-            <div
-              key={assignment._id}
-              onClick={() =>
-                navigate(
-                  `/student/assignments/${assignment._id}/submit`
-                )
-              }
-              style={{
-                border: "1px solid #ccc",
-                padding: "16px",
-                borderRadius: "8px",
-                cursor: "pointer"
-              }}
-            >
-              <h4>{assignment.title}</h4>
+        <div style={styles.grid}>
+          {assignments.map((assignment) => {
+            const isLate =
+              new Date(assignment.dueDate) < new Date();
 
-              {assignment.description && (
-                <p>{assignment.description}</p>
-              )}
+            return (
+              <div
+                key={assignment._id}
+                style={styles.card}
+                onClick={() =>
+                  navigate(
+                    `/student/assignments/${assignment._id}/submit`
+                  )
+                }
+              >
+                <h4 style={styles.assignmentTitle}>
+                  {assignment.title}
+                </h4>
 
-              <p>
-                <strong>Due:</strong>{" "}
-                {new Date(assignment.dueDate).toLocaleDateString()}
-              </p>
-            </div>
-          ))}
+                {assignment.description && (
+                  <p style={styles.description}>
+                    {assignment.description}
+                  </p>
+                )}
+
+                <div style={styles.meta}>
+                  <span>
+                    Due:{" "}
+                    {new Date(
+                      assignment.dueDate
+                    ).toLocaleDateString()}
+                  </span>
+
+                  <span
+                    style={{
+                      ...styles.badge,
+                      background: isLate
+                        ? "#fee2e2"
+                        : "#dcfce7",
+                      color: isLate
+                        ? "#dc2626"
+                        : "#16a34a"
+                    }}
+                  >
+                    {isLate ? "Late" : "Open"}
+                  </span>
+                </div>
+              </div>
+            );
+          })}
         </div>
       )}
     </div>
@@ -75,3 +97,49 @@ const SubjectAssignments = () => {
 };
 
 export default SubjectAssignments;
+
+/* ---------------- STYLES ---------------- */
+const styles = {
+  page: {
+    padding: "24px"
+  },
+  title: {
+    fontSize: "22px",
+    fontWeight: "600",
+    marginBottom: "16px"
+  },
+  grid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
+    gap: "20px"
+  },
+  card: {
+    background: "#ffffff",
+    borderRadius: "14px",
+    padding: "18px",
+    cursor: "pointer",
+    boxShadow: "0 10px 30px rgba(0,0,0,0.08)",
+    transition: "transform 0.2s ease"
+  },
+  assignmentTitle: {
+    fontSize: "16px",
+    fontWeight: "600",
+    marginBottom: "6px"
+  },
+  description: {
+    fontSize: "14px",
+    color: "#64748b",
+    marginBottom: "10px"
+  },
+  meta: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    fontSize: "13px"
+  },
+  badge: {
+    padding: "4px 10px",
+    borderRadius: "999px",
+    fontWeight: "500"
+  }
+};

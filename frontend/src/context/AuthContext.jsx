@@ -5,45 +5,41 @@ export const AuthContext = createContext(null);
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true); // ✅ NEW
 
-  // Load auth data from localStorage safely
   useEffect(() => {
     const storedToken = localStorage.getItem("token");
     const storedUser = localStorage.getItem("user");
 
-    if (storedToken) {
+    if (storedToken && storedUser) {
       setToken(storedToken);
-    }
-
-    if (storedUser) {
       try {
-        const parsedUser = JSON.parse(storedUser);
-        setUser(parsedUser);
-      } catch (error) {
-        console.error("Invalid user in localStorage, clearing it");
+        setUser(JSON.parse(storedUser));
+      } catch {
         localStorage.removeItem("user");
       }
     }
+
+    setAuthLoading(false); // ✅ DONE LOADING
   }, []);
 
-  // Login
-  const login = (data) => {
-    setToken(data.token);
-    setUser(data.user);
-    localStorage.setItem("token", data.token);
-    localStorage.setItem("user", JSON.stringify(data.user));
+  const login = ({ token, user }) => {
+    setToken(token);
+    setUser(user);
+    localStorage.setItem("token", token);
+    localStorage.setItem("user", JSON.stringify(user));
   };
 
-  // Logout
   const logout = () => {
     setToken(null);
     setUser(null);
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
+    localStorage.clear();
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, login, logout }}>
+    <AuthContext.Provider
+      value={{ user, token, login, logout, authLoading }}
+    >
       {children}
     </AuthContext.Provider>
   );

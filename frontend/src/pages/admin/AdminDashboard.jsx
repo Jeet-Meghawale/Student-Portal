@@ -1,36 +1,63 @@
-import { useContext } from "react";
 import { useNavigate } from "react-router-dom";
-import { AuthContext } from "../../context/AuthContext";
 
 const AdminDashboard = () => {
-  const { logout } = useContext(AuthContext);
   const navigate = useNavigate();
 
-  const handleLogout = () => {
-    logout();
-    navigate("/admin/login");
-  };
+  const cards = [
+    {
+      title: "User Management",
+      description: "Manage students, staff & admins",
+      color: "#e0f2fe",
+      action: () => navigate("/admin/users")
+    },
+    {
+      title: "Subject Management",
+      description: "Create subjects & enroll students",
+      color: "#ede9fe",
+      action: () => navigate("/admin/subjects")
+    },
+    {
+      title: "Meetings",
+      description: "Schedule & view meeting logs",
+      color: "#fff7ed",
+      action: () => navigate("/admin/meetings")
+    }
+  ];
 
   return (
     <div>
-      {/* Header */}
+      <h2 style={{ marginBottom: 20 }}>Dashboard</h2>
+
       <div
         style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
+          gap: "20px"
         }}
       >
-        <h2>Admin Dashboard</h2>
-
-        <button onClick={handleLogout}>
-          Logout
-        </button>
-      </div>
-
-      {/* Page Content (later) */}
-      <div>
-        <p>Welcome Admin</p>
+        {cards.map((card, index) => (
+          <div
+            key={index}
+            onClick={card.action}
+            style={{
+              background: card.color,
+              padding: "20px",
+              borderRadius: "12px",
+              cursor: "pointer",
+              transition: "all 0.2s ease",
+              boxShadow: "0 4px 12px rgba(0,0,0,0.05)"
+            }}
+            onMouseEnter={(e) =>
+              (e.currentTarget.style.transform = "translateY(-4px)")
+            }
+            onMouseLeave={(e) =>
+              (e.currentTarget.style.transform = "translateY(0)")
+            }
+          >
+            <h3>{card.title}</h3>
+            <p>{card.description}</p>
+          </div>
+        ))}
       </div>
     </div>
   );

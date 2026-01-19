@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import api from "../../services/api";
-import UserHeader from "../../components/common/UserHeader";
+import { Link } from "react-router-dom";
 
 const StaffSubjects = () => {
   const [subjects, setSubjects] = useState([]);
@@ -23,7 +23,7 @@ const StaffSubjects = () => {
       } catch (err) {
         setError(
           err.response?.data?.message ||
-          "Failed to fetch assigned subjects"
+            "Failed to fetch assigned subjects"
         );
         setSubjects([]);
       } finally {
@@ -38,35 +38,81 @@ const StaffSubjects = () => {
   if (error) return <p>{error}</p>;
 
   return (
-    <div>
-      {/* Username + Logout */}
-      {/* <UserHeader redirectTo="/staff/login" /> */}
-
-      <h2>My Assigned Subjects</h2>
+    <div style={pageStyle}>
+      <h2 style={titleStyle}>My Assigned Subjects</h2>
+      <p style={subtitleStyle}>
+        Select a subject to manage assignments
+      </p>
 
       {subjects.length === 0 ? (
         <p>No subjects assigned yet</p>
       ) : (
-        <table>
-          <thead>
-            <tr>
-              <th>Subject Name</th>
-              <th>Subject Code</th>
-              <th>Create Assignment</th>
-            </tr>
-          </thead>
-          <tbody>
-            {subjects.map((subject) => (
-              <tr key={subject._id}>
-                <td>{subject.name}</td>
-                <td>{subject.code}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <div style={cardGrid}>
+          {subjects.map((subject) => (
+            <div key={subject._id} style={cardStyle}>
+              <h3>{subject.name}</h3>
+              <p style={codeStyle}>{subject.code}</p>
+
+              <Link
+                to={`/staff/assignments/select-subject`}
+                state={{ subject }}
+                style={buttonStyle}
+              >
+                Manage Assignments →
+              </Link>
+            </div>
+          ))}
+        </div>
       )}
     </div>
   );
 };
 
 export default StaffSubjects;
+
+/* ---------------- STYLES ---------------- */
+
+const pageStyle = {
+  padding: "24px",
+};
+
+const titleStyle = {
+  marginBottom: "4px",
+};
+
+const subtitleStyle = {
+  color: "#64748b",
+  marginBottom: "24px",
+};
+
+const cardGrid = {
+  display: "grid",
+  gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
+  gap: "20px",
+};
+
+const cardStyle = {
+  background: "#ffffff",
+  padding: "20px",
+  borderRadius: "12px",
+  boxShadow: "0 10px 20px rgba(0,0,0,0.08)",
+  display: "flex",
+  flexDirection: "column",
+  justifyContent: "space-between",
+};
+
+const codeStyle = {
+  color: "#64748b",
+  marginBottom: "16px",
+};
+
+const buttonStyle = {
+  marginTop: "auto",
+  textDecoration: "none",
+  padding: "10px",
+  borderRadius: "6px",
+  background: "#2563eb",
+  color: "#fff",
+  textAlign: "center",
+  fontWeight: "500",
+};

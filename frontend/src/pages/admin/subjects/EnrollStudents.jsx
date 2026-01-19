@@ -38,7 +38,6 @@ const EnrollStudents = () => {
           return;
         }
 
-        // Extract emails & validate
         const extractedEmails = jsonData.map((row, index) => {
           if (!row.email) {
             throw new Error(`Missing email in row ${index + 2}`);
@@ -46,7 +45,6 @@ const EnrollStudents = () => {
           return row.email;
         });
 
-        // Remove duplicate emails inside file
         const uniqueEmails = [...new Set(extractedEmails)];
 
         if (uniqueEmails.length < extractedEmails.length) {
@@ -78,17 +76,11 @@ const EnrollStudents = () => {
       setError("");
       setSuccess("");
 
-      /*
-        ✅ BACKEND EXPECTATION
-        POST /api/subjects/enroll-bulk
-        Payload: { subjectId, studentEmails }
-      */
       const res = await api.post("/api/subjects/enroll-bulk", {
         subjectId,
         studentEmails: emails
       });
 
-      console.log(res.data);
       setSuccess(
         `Enrollment completed. Enrolled: ${res.data.enrolledCount}, Skipped: ${res.data.skippedCount}`
       );
@@ -102,51 +94,137 @@ const EnrollStudents = () => {
       setEmails([]);
     } catch (err) {
       setError(
-        err.response?.data?.message ||
-        "Failed to enroll students"
+        err.response?.data?.message || "Failed to enroll students"
       );
     } finally {
       setLoading(false);
     }
   };
 
-
   return (
-    <div>
-      <h3>Enroll Students</h3>
+    <div
+      style={{
+        minHeight: "80vh",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "flex-start",
+        paddingTop: "60px",
+      }}
+    >
+      <div style={{ width: "100%", maxWidth: "620px" }}>
+        <h2 style={{ fontSize: "28px", fontWeight: "700" }}>
+          Enroll Students
+        </h2>
+        <p style={{ color: "#6b7280", marginBottom: "28px" }}>
+          Upload an Excel or CSV file to enroll students into this subject
+        </p>
 
-      {error && <p>{error}</p>}
-      {success && <p>{success}</p>}
+        {error && <div style={errorStyle}>{error}</div>}
+        {success && <div style={successStyle}>{success}</div>}
 
-      {/* Excel Upload */}
-      <input
-        type="file"
-        accept=".xlsx,.xls,.csv"
-        onChange={handleFileUpload}
-      />
+        <div style={cardStyle}>
+          {/* Upload */}
+          <label style={uploadBox}>
+            Click to upload Excel / CSV file
+            <input
+              type="file"
+              accept=".xlsx,.xls,.csv"
+              onChange={handleFileUpload}
+              style={{ display: "none" }}
+            />
+          </label>
 
-      {/* Preview */}
-      {emails.length > 0 && (
-        <div>
-          <p>Total Students: {emails.length}</p>
+          {/* Preview */}
+          {emails.length > 0 && (
+            <div style={{ marginTop: "22px" }}>
+              <p style={{ fontWeight: "600" }}>
+                Total Students: {emails.length}
+              </p>
 
-          <ul>
-            {emails.slice(0, 5).map((email, index) => (
-              <li key={index}>{email}</li>
-            ))}
-          </ul>
+              <ul style={previewList}>
+                {emails.slice(0, 5).map((email, index) => (
+                  <li key={index}>{email}</li>
+                ))}
+              </ul>
 
-          {emails.length > 5 && (
-            <p>Showing first 5 students</p>
+              {emails.length > 5 && (
+                <p style={{ fontSize: "14px", color: "#6b7280" }}>
+                  Showing first 5 students
+                </p>
+              )}
+
+              <button
+                onClick={handleEnroll}
+                disabled={loading}
+                style={{
+                  ...submitBtn,
+                  opacity: loading ? 0.7 : 1,
+                }}
+              >
+                {loading ? "Enrolling..." : "Enroll Students"}
+              </button>
+            </div>
           )}
-
-          <button onClick={handleEnroll} disabled={loading}>
-            {loading ? "Enrolling..." : "Enroll Students"}
-          </button>
         </div>
-      )}
+      </div>
     </div>
   );
+};
+
+/* ---------------- STYLES ---------------- */
+
+const cardStyle = {
+  background: "#ffffff",
+  padding: "32px",
+  borderRadius: "14px",
+  boxShadow: "0 20px 40px rgba(0,0,0,0.08)",
+  borderLeft: "6px solid #16a34a",
+};
+
+const uploadBox = {
+  display: "block",
+  padding: "20px",
+  border: "2px dashed #16a34a",
+  borderRadius: "10px",
+  textAlign: "center",
+  cursor: "pointer",
+  fontWeight: "600",
+  color: "#166534",
+};
+
+const previewList = {
+  marginTop: "12px",
+  paddingLeft: "18px",
+};
+
+const submitBtn = {
+  width: "100%",
+  padding: "14px",
+  marginTop: "18px",
+  borderRadius: "10px",
+  border: "none",
+  background: "#16a34a",
+  color: "#ffffff",
+  fontSize: "16px",
+  fontWeight: "600",
+  cursor: "pointer",
+};
+
+const errorStyle = {
+  background: "#fee2e2",
+  color: "#991b1b",
+  padding: "12px",
+  borderRadius: "8px",
+  marginBottom: "16px",
+  whiteSpace: "pre-line",
+};
+
+const successStyle = {
+  background: "#dcfce7",
+  color: "#166534",
+  padding: "12px",
+  borderRadius: "8px",
+  marginBottom: "16px",
 };
 
 export default EnrollStudents;
