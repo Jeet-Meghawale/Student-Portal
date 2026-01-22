@@ -6,7 +6,8 @@ import {
   enrollStudentsBulk,
   getAllSubjects,
   getMySubjects,
-  getMyTeachingSubjects
+  getMyTeachingSubjects,
+  getStudentBySubject
 } from "../controllers/subject.controller.js";
 import { protect } from "../middlewares/auth.middleware.js";
 import { authorizeRoles } from "../middlewares/role.middleware.js";
@@ -62,10 +63,10 @@ router.get(
     STUDENT ONLY
    ========================= */
 router.get(
-    "/my",
-    protect,
-    authorizeRoles("STUDENT"),
-    getMySubjects
+  "/my",
+  protect,
+  authorizeRoles("STUDENT"),
+  getMySubjects
 );
 
 /* =========================
@@ -73,10 +74,10 @@ router.get(
     STAFF ONLY
    ========================= */
 router.get(
-    "/teaching",
-    protect,
-    authorizeRoles("STAFF"),
-    getMyTeachingSubjects
+  "/teaching",
+  protect,
+  authorizeRoles("STAFF"),
+  getMyTeachingSubjects
 );
 
 /* =============================
@@ -89,5 +90,14 @@ router.delete(
   authorizeRoles("ADMIN"),
   deleteSubject
 );
+/* =============================
+  Get students enrolled in subject
+  ==========================*/
+router.get(
+  "/:id/students",
+  protect,
+  authorizeRoles("ADMIN","STAFF"),
+  getStudentBySubject
+)
 
 export default router;

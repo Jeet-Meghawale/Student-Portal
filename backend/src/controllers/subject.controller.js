@@ -311,3 +311,23 @@ export const deleteSubject = async (req, res) => {
   }
 };
 
+export const getStudentBySubject = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const subject = await Subject.findById(id)
+      .populate("students", "-password");
+
+    if (!subject) {
+      return res.status(404).json({ message: "Subject not found" });
+    }
+
+    res.status(200).json({
+      subjectId: subject._id,
+      subjectName: subject.name,
+      students: subject.students
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+}

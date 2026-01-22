@@ -21,7 +21,7 @@ export const getUserIdByEmail = async (req, res) => {
         return res.status(200).json({
             userId: user._id,
             email: user.email,
-            name :user.name
+            name: user.name
         });
 
     } catch (error) {
@@ -31,3 +31,66 @@ export const getUserIdByEmail = async (req, res) => {
         });
     }
 };
+
+export const getUserById = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const user = await User.findById(id).select("-password");
+
+        if (!user) {
+            return res.status(404).json({
+                message: "User not found"
+            });
+        }
+
+        res.status(200).json(user);
+    } catch (error) {
+        res.status(500).json({
+            message: error.message
+        });
+    }
+}
+
+export const getUserByEmail = async (req, res) => {
+    try {
+        const { email } = req.params;
+
+        const user = await User.findOne({ email }).select("-password");
+
+        if (!user) {
+            return res.status(404).json({
+                message: "User not found"
+            });
+        }
+
+        res.status(200).json(user);
+    } catch (error) {
+        res.status(500).json({
+            message: error.message
+        });
+    }
+}
+
+export const getUsersByRole = async (req, res) => {
+    try {
+        const { role } = req.params;
+
+        const users = await User.find({ role }).select("-password");
+
+        if (users.length === 0) {
+            return res.status(404).json({
+                message: "No users found for this role"
+            });
+        }
+
+        res.status(200).json({
+            count: users.length,
+            users
+        });
+    } catch (error) {
+        res.status(500).json({
+            message: error.message
+        });
+    }
+}
