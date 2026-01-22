@@ -331,3 +331,155 @@ export const getStudentBySubject = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 }
+
+export const getSubjectById = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const subject = await Subject.findById(id)
+      .populate("staff", "-password")
+      .populate("students", "-password");
+
+    if (!subject) {
+      return res.status(404).json({
+        message: "Subject not found"
+      });
+    }
+
+    res.status(200).json(subject);
+  } catch (error) {
+    res.status(500).json({
+      message: error.message
+    });
+  }
+};
+
+export const getStaffForSubject = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const subject = await Subject.findById(id)
+      .populate("staff", "-password");
+
+    if (!subject) {
+      return res.status(404).json({
+        message: "Subject not found"
+      });
+    }
+
+    if (!subject.staff) {
+      return res.status(404).json({
+        message: "No staff assigned to this subject"
+      });
+    }
+
+    res.status(200).json({
+      subjectId: subject._id,
+      subjectName: subject.name,
+      staff: subject.staff
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: error.message
+    });
+  }
+};
+
+export const getEnrollmentDetails = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const subject = await Subject.findById(id)
+      .populate("students", "-password");
+
+    if (!subject) {
+      return res.status(404).json({
+        message: "Subject not found"
+      });
+    }
+
+    res.status(200).json({
+      subjectId: subject._id,
+      subjectName: subject.name,
+      totalEnrollments: subject.students.length,
+      students: subject.students
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: error.message
+    });
+  }
+};
+
+export const removeStudentFromSubject = async (req, res) => {
+  try {
+    const { id: subjectId, studentId } = req.params;
+
+    // 1. Validate ObjectIds
+    if (
+      !mongoose.Types.ObjectId.isValid(subjectId) ||
+      !mongoose.Types.ObjectId.isValid(studentId)
+    ) {
+      return res.status(400).json({
+        message: "Invalid subject ID or student ID"
+      });
+    }
+
+    // 2. Check subject exists
+    const subject = await Subject.findById(subjectId);
+    if (!subject) {
+      return res.status(404).json({
+        message: "Subject not found"
+      });
+    }
+
+    // 3. Check student exists & role
+    const student = await User.findOne({
+      _id: studentId,
+      role: "STUDENT"
+    });
+
+    if (!student) {
+      return res.status(404).json({
+        message: "Student not found"
+      });
+    }
+
+    // 4. Check student is part of subject.students[]
+    const isStudentInSubject = subject.students.some(
+      (id) => id.toString() === studentId
+    );
+
+    if (!isStudentInSubject) {
+      return res.status(400).json({
+        message: "Student is not enrolled in this subject"
+      });
+    }
+
+    // 5. Remove student from subject.students array
+    subject.students = subject.students.filter(
+      (id) => id.toString() !== studentId
+    );
+    await subject.save();
+
+    // 6. Remove enrollment record (if exists)
+    await Enrollment.deleteOne({
+      subject: subjectId,
+      student: studentId
+    });
+
+    return res.status(200).json({
+      message: "Student removed from subject successfully",
+      data: {
+        subjectId,
+        studentId
+      }
+    });
+
+  } catch (error) {
+    console.error("Remove student from subject error:", error);
+    return res.status(500).json({
+      message: "Internal server error"
+    });
+  }
+};

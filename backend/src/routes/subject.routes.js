@@ -5,9 +5,13 @@ import {
   enrollStudent,
   enrollStudentsBulk,
   getAllSubjects,
+  getEnrollmentDetails,
   getMySubjects,
   getMyTeachingSubjects,
-  getStudentBySubject
+  getStaffForSubject,
+  getStudentBySubject,
+  getSubjectById,
+  removeStudentFromSubject
 } from "../controllers/subject.controller.js";
 import { protect } from "../middlewares/auth.middleware.js";
 import { authorizeRoles } from "../middlewares/role.middleware.js";
@@ -95,9 +99,49 @@ router.delete(
   ==========================*/
 router.get(
   "/:id/students",
-  protect,
-  authorizeRoles("ADMIN","STAFF"),
+  // protect,
+  // authorizeRoles("ADMIN", "STAFF"),
   getStudentBySubject
 )
+/* =============================
+  Get subject by ID
+==========================*/
+
+router.get(
+  "/:id",
+  protect,
+  authorizeRoles("ADMIN"),
+  getSubjectById
+);
+
+/* =============================
+Get staff for subject
+==========================*/
+
+router.get(
+  "/:id/staff",
+  protect,
+  authorizeRoles("ADMIN"),
+  getStaffForSubject
+);
+
+/* =============================
+Enrollment details
+==========================*/
+
+router.get(
+  "/:id/enrollments",
+  protect,
+  authorizeRoles("ADMIN"),
+  getEnrollmentDetails
+);
+
+router.delete(
+  "/:id/student/:studentId",
+  // protect,
+  // authorizeRoles("ADMIN"),
+  removeStudentFromSubject
+)
+
 
 export default router;

@@ -1,7 +1,7 @@
 import Enrollment from "../models/Enrollment.model.js";
 import Subject from "../models/Subject.model.js";
 import User from "../models/User.model.js";
-
+import mongoose from "mongoose";
 /**
  * @desc    Get all students
  * @route   GET /api/admin/students
@@ -181,4 +181,95 @@ export const updateStudentStatus = async (req, res) => {
             message: error.message
         });
     }
+};
+
+export const deleteStaff = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        // Validate ObjectId
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({
+                message: "Invalid staff ID"
+            });
+        }
+
+        // Find staff
+        const staff = await User.findOne({
+            _id: id,
+            role: "STAFF"
+        });
+
+        if (!staff) {
+            return res.status(404).json({
+                message: "Staff not found"
+            });
+        }
+
+        // Delete staff
+        await User.deleteOne({ _id: id });
+
+        return res.status(200).json({
+            message: "Staff deleted successfully",
+            data: {
+                id: staff._id,
+                email: staff.email
+            }
+        });
+
+    } catch (error) {
+        console.error("Delete staff error:", error);
+        return res.status(500).json({
+            message: "Internal server error"
+        });
+    }
+};
+
+export const deleteAdmin = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Prevent self-delete
+    if (req.user.id === id) {
+      return res.status(403).json({
+        message: "Admin cannot delete their own account"
+      });
+    }
+
+    // Validate ObjectId
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
+        message: "Invalid admin ID"
+      });
+    }
+
+    // Find admin
+    const admin = await User.findOne({
+      _id: id,
+      role: "ADMIN"
+    });
+
+    if (!admin) {
+      return res.status(404).json({
+        message: "Admin not found"
+      });
+    }
+
+    // Delete admin
+    await User.deleteOne({ _id: id });
+
+    return res.status(200).json({
+      message: "Admin deleted successfully",
+      data: {
+        id: admin._id,
+        email: admin.email
+      }
+    });
+
+  } catch (error) {
+    console.error("Delete admin error:", error);
+    return res.status(500).json({
+      message: "Internal server error"
+    });
+  }
 };
