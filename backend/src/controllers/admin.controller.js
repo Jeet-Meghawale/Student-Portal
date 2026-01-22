@@ -108,3 +108,77 @@ export const deleteStudent = async (req, res) => {
         res.status(500).json({ message: "Server error" });
     }
 };
+
+export const getStudentById = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const student = await User.findOne({
+            _id: id,
+            role: "STUDENT"
+        }).select("-password");
+
+        if (!student) {
+            return res.status(404).json({
+                message: "Student not found"
+            });
+        }
+
+        res.status(200).json(student);
+    } catch (error) {
+        res.status(500).json({
+            message: error.message
+        });
+    }
+};
+
+export const getStaffById = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const staff = await User.findOne({
+            _id: id,
+            role: "STAFF"
+        }).select("-password");
+
+        if (!staff) {
+            return res.status(404).json({
+                message: "Staff not found"
+            });
+        }
+
+        res.status(200).json(staff);
+    } catch (error) {
+        res.status(500).json({
+            message: error.message
+        });
+    }
+};
+
+export const updateStudentStatus = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { isActive } = req.body; // true or false
+
+        const student = await User.findOneAndUpdate(
+            { _id: id, role: "STUDENT" },
+            { isActive },
+            { new: true }
+        ).select("-password");
+
+        if (!student) {
+            return res.status(404).json({
+                message: "Student not found"
+            });
+        }
+
+        res.status(200).json({
+            message: `Student ${isActive ? "activated" : "deactivated"} successfully`,
+            student
+        });
+    } catch (error) {
+        res.status(500).json({
+            message: error.message
+        });
+    }
+};
