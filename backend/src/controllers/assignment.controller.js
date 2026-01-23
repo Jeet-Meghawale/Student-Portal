@@ -1,6 +1,8 @@
 import Assignment from "../models/Assignment.model.js";
 import Subject from "../models/Subject.model.js";
 import Enrollment from "../models/Enrollment.model.js";
+import Submission from "../models/Submission.model.js";
+
 import { createNotification } from "../utils/notification.helper.js";
 
 export const createAssignment = async (req, res) => {
@@ -136,3 +138,80 @@ export const getAssignmentById = async (req, res) => {
   }
 };
 
+export const updateAssignment = async (req, res) => {
+  try {
+    const { assignmentId } = req.params;
+
+    const updatedAssignment = await Assignment.findByIdAndUpdate(
+      assignmentId,
+      req.body,
+      { new: true, runValidators: true }
+    ).populate("subject", "name");
+
+    if (!updatedAssignment) {
+      return res.status(404).json({ message: "Assignment not found" });
+    }
+
+    res.status(200).json(updatedAssignment);
+  } catch (error) {
+    console.error("Update assignment error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+export const deleteAssignment = async (req, res) => {
+  try {
+    const { assignmentId } = req.params;
+
+    const assignment = await Assignment.findByIdAndDelete(assignmentId);
+
+    if (!assignment) {
+      return res.status(404).json({ message: "Assignment not found" });
+    }
+
+    res.status(200).json({
+      message: "Assignment deleted successfully"
+    });
+  } catch (error) {
+    console.error("Delete assignment error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+export const getAssignmentStats = async (req, res) => {
+  try {
+    const { assignmentId } = req.params;
+
+    const assignment = await Assignment.findById(assignmentId)
+      .populate("subject", "name");
+
+    if (!assignment) {
+      return res.status(404).json({ message: "Assignment not found" });
+    }
+
+    const totalSubmissions = await Submission.countDocuments({
+      assignment: assignmentId
+    });
+
+    const groupSubmissions = await Submission.countDocuments({
+      assignment: assignmentId,
+      isGroup: true
+    });
+
+    const individualSubmissions = totalSubmissions - groupSubmissions;
+
+    res.status(200).json({
+      assignmentId: assignment._id,
+      title: assignment.title,
+      subject: assignment.subject.name,
+      dueDate: assignment.dueDate,
+      allowGroup: assignment.allowGroup,
+      totalSubmissions,
+      groupSubmissions,
+      individualSubmissions
+    });
+  } catch (error) {
+    console.error("Assignment stats error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};

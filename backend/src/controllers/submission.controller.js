@@ -57,7 +57,7 @@ export const submitAssignment = async (req, res) => {
             fileUrl: req.file.path,
             status: "submitted"
         });
-        
+
         // 6. Notifications
         await createNotification({
             user: assignment.createdBy, // staff
@@ -204,4 +204,91 @@ export const getMySubmission = async (req, res) => {
             message: "Server error"
         });
     }
+};
+
+
+/**
+ * ===============================
+ * Get submission by ID 
+ * ===============================
+ */
+export const getSubmissionById = async (req, res) => {
+    try {
+        const { submissionId } = req.params;
+
+        const submission = await Submission.findById(submissionId)
+            .populate("assignment", "title dueDate")
+            .populate("student", "name email");
+
+        if (!submission) {
+            return res.status(404).json({ message: "Submission not found" });
+        }
+
+        res.status(200).json(submission);
+    } catch (error) {
+        console.error("Get submission error:", error);
+        res.status(500).json({ message: "Server error" });
+    }
+};
+
+/**
+ * ===============================
+ * Delete submission by ID 
+ * ===============================
+ */
+
+export const deleteSubmission = async (req, res) => {
+    try {
+        const { submissionId } = req.params;
+
+        const submission = await Submission.findById(submissionId);
+
+        if (!submission) {
+            return res.status(404).json({ message: "Submission not found" });
+        }
+
+        //  ensure student owns the submission
+        if (submission.student.toString() !== req.user.id) {
+            return res.status(403).json({ message: "Not authorized to delete this submission" });
+        }
+
+        await submission.deleteOne();
+
+        res.status(200).json({
+            message: "Submission deleted successfully"
+        });
+    } catch (error) {
+        console.error("Delete submission error:", error);
+        res.status(500).json({ message: "Server error" });
+    }
+};
+
+
+/**
+ * ===============================
+ *  Admin override view
+ * ===============================
+ */
+export const getAllSubmissionsByAssignment = async (req, res) => {
+  try {
+    const { assignmentId } = req.params;
+
+    const submissions = await Submission.find({ assignment: assignmentId })
+      .populate("student", "name email")
+      .populate("assignment", "title dueDate");
+
+    if (!submissions.length) {
+      return res.status(404).json({
+        message: "No submissions found for this assignment"
+      });
+    }
+
+    res.status(200).json({
+      total: submissions.length,
+      submissions
+    });
+  } catch (error) {
+    console.error("Admin assignment submissions error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
 };

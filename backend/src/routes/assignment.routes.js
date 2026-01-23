@@ -1,5 +1,5 @@
 import express from "express";
-import { createAssignment, getAssignmentById, getAssignmentsBySubject, getStudentAssignments } from "../controllers/assignment.controller.js";
+import { createAssignment, deleteAssignment, getAssignmentById, getAssignmentsBySubject, getAssignmentStats, getStudentAssignments, updateAssignment } from "../controllers/assignment.controller.js";
 import { protect } from "../middlewares/auth.middleware.js";
 import { authorizeRoles } from "../middlewares/role.middleware.js";
 
@@ -35,5 +35,25 @@ router.get(
     getAssignmentById
 );
 
+router.patch(
+  "/:assignmentId",
+  protect,
+  authorizeRoles("STAFF"),
+  updateAssignment
+)
+
+router.delete(
+  "/:assignmentId",
+  protect,
+  authorizeRoles("STAFF"),
+  deleteAssignment
+)
+
+router.get(
+  "/:assignmentId/stats",
+  // protect,
+  // authorizeRoles("STAFF"),
+  getAssignmentStats
+)
 
 export default router;
